@@ -1,13 +1,32 @@
-[{
+[
+  {
     "id": 1,
     "title": "Test",
     "description": "This is just a test",
-    "attendees":[
-        "sha3ad1423@gmail.com"    ],
+    "attendees": [],
     "start_date": "09 Feb 2024",
     "start_time": "09:00:00",
-    "end_date":"09 Feb 2024",
-    "end_time":"10:00:00"
-}
-
+    "end_date": "09 Feb 2024",
+    "end_time": "10:00:00"
+  },
+  {
+    "id": 2,
+    "title": "Test2",
+    "description": "This is just a test",
+    "attendees": [],
+    "start_date": "09 Feb 2024",
+    "start_time": "09:00:00",
+    "end_date": "09 Feb 2024",
+    "end_time": "10:00:00"
+  },
+  {
+    "id": 3,
+    "title": "Test3",
+    "description": "This is just a test",
+    "attendees": [],
+    "start_date": "09 Feb 2024",
+    "start_time": "09:00:00",
+    "end_date": "09 Feb 2024",
+    "end_time": "10:00:00"
+  }
 ]

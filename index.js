@@ -1,32 +1,41 @@
 import dotenv from "dotenv";
 import express from "express";
 import { google } from "googleapis";
-import dayjs from "dayjs";
 import fs from "fs";
 import moment from "moment-timezone";
 
-
+//server configuration
 const app = express();
-
 const port = process.env.PORT || 8000;
-
 dotenv.config();
 
+app.listen(port, () => {
+  console.log(`Server is running on port ${port}`);
+});
+
+// Google API configuration
+const scopes = ["https://www.googleapis.com/auth/calendar"];
 const oauth2client = new google.auth.OAuth2(
   process.env.CLIENT_ID,
   process.env.CLIENT_SECRET,
   process.env.REDIRECT_URI
 );
 
-const scopes = ["https://www.googleapis.com/auth/calendar"];
-
+// Function to insert event in google calendar
 const insertEvent = async (data) => {
-    const calendar = google.calendar({ version: "v3", auth: oauth2client });
+  const calendar = google.calendar({ version: "v3", auth: oauth2client });
+  const startTime = moment.tz(
+    `${data["start_date"]} ${data["start_time"]}}`,
+    "DD MMM YYYY HH:mm:ss",
+    "Asia/Riyadh"
+  );
+  const endTime = moment.tz(
+    `${data["end_date"]} ${data["end_time"]}}`,
+    "DD MMM YYYY HH:mm:ss",
+    "Asia/Riyadh"
+  );
 
-    const startTime = moment.tz(`${data["start_date"]} ${data["start_time"]}}`, "DD MMM YYYY HH:mm:ss", "Asia/Riyadh");
-    const endTime = moment.tz(`${data["end_date"]} ${data["end_time"]}}`, "DD MMM YYYY HH:mm:ss", "Asia/Riyadh");
-
-    await calendar.events.insert({
+  await calendar.events.insert({
     conferenceDataVersion: 1,
     calendarId: "primary",
     requestBody: {
@@ -46,16 +55,17 @@ const insertEvent = async (data) => {
           conferenceSolutionKey: { type: "hangoutsMeet" },
         },
       },
-      attendees: data["attendees"].map((val)=>{
-        return {"email": val};
+      attendees: data["attendees"].map((val) => {
+        return { email: val };
       }),
       reminders: {
         useDefault: true,
       },
     },
   });
-}
+};
 
+// middlewares
 app.get("/login", (req, res) => {
   const url = oauth2client.generateAuthUrl({
     access_type: "offline",
@@ -73,26 +83,20 @@ app.get("/login/redirect", async (req, res) => {
 });
 
 app.get("/events", async (req, res) => {
-
   try {
-    fs.readFile("./data.json", "utf-8", (err,data)=>{
+    fs.readFile("./data.json", "utf-8", (err, data) => {
       if (err) {
         res.send("cant read file");
         return;
       }
       // Parse the JSON data
       const dataArray = JSON.parse(data);
-      dataArray.forEach(element => {
+      dataArray.forEach((element) => {
         insertEvent(element);
       });
     });
-    res.send("Event created");
-  }catch(err){
-    res.send(err);
+    res.send("Events created");
+  } catch (err) {
+    res.send(err.message);
   }
 });
-
-app.listen(port, () => {
-  console.log(`Server is running on port ${port}`);
-});
-
