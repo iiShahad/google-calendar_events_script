@@ -3,17 +3,11 @@
     "title": "Test",
     "description": "This is just a test",
     "attendees":[
-        "sha3ad1423@gmail.com"
-    ],
-    "start_time": "05 Feb 2024 00:09:00 GMT",
-    "end_time":"05 Feb 2024 00:10:00 GMT"
-},{
-    "id": 2,
-    "attendees":[
-        "sha3ad1423@gmail.com"
-    ],
-    "start_time": "06 Feb 2024 00:11:00 GMT",
-    "end_time":"06 Feb 2024 00:12:00 GMT"
+        "sha3ad1423@gmail.com"    ],
+    "start_date": "09 Feb 2024",
+    "start_time": "09:00:00",
+    "end_date":"09 Feb 2024",
+    "end_time":"10:00:00"
 }
 
 ]

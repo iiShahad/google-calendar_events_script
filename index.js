@@ -3,6 +3,7 @@ import express from "express";
 import { google } from "googleapis";
 import dayjs from "dayjs";
 import fs from "fs";
+import moment from "moment-timezone";
 
 
 const app = express();
@@ -22,6 +23,9 @@ const scopes = ["https://www.googleapis.com/auth/calendar"];
 const insertEvent = async (data) => {
     const calendar = google.calendar({ version: "v3", auth: oauth2client });
 
+    const startTime = moment.tz(`${data["start_date"]} ${data["start_time"]}}`, "DD MMM YYYY HH:mm:ss", "Asia/Riyadh");
+    const endTime = moment.tz(`${data["end_date"]} ${data["end_time"]}}`, "DD MMM YYYY HH:mm:ss", "Asia/Riyadh");
+
     await calendar.events.insert({
     conferenceDataVersion: 1,
     calendarId: "primary",
@@ -29,11 +33,11 @@ const insertEvent = async (data) => {
       summary: data["title"],
       description: data["description"],
       start: {
-        dateTime: new Date(data["start_time"]).toISOString(),
+        dateTime: startTime.toISOString(),
         timeZone: "Asia/Riyadh",
       },
       end: {
-        dateTime: new Date(data["end_time"]).toISOString(),
+        dateTime: endTime.toISOString(),
         timeZone: "Asia/Riyadh",
       },
       conferenceData: {
@@ -65,7 +69,7 @@ app.get("/login/redirect", async (req, res) => {
   const { tokens } = await oauth2client.getToken(token);
   oauth2client.setCredentials(tokens);
 
-  res.send("yay");
+  res.redirect("/events");
 });
 
 app.get("/events", async (req, res) => {
