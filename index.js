@@ -2,6 +2,8 @@ import dotenv from "dotenv";
 import express from "express";
 import { google } from "googleapis";
 import dayjs from "dayjs";
+import fs from "fs";
+
 
 const app = express();
 
@@ -17,7 +19,40 @@ const oauth2client = new google.auth.OAuth2(
 
 const scopes = ["https://www.googleapis.com/auth/calendar"];
 
-app.get("/google", (req, res) => {
+const insertEvent = async (data) => {
+    const calendar = google.calendar({ version: "v3", auth: oauth2client });
+
+    await calendar.events.insert({
+    conferenceDataVersion: 1,
+    calendarId: "primary",
+    requestBody: {
+      summary: data["title"],
+      description: data["description"],
+      start: {
+        dateTime: new Date(data["start_time"]).toISOString(),
+        timeZone: "Asia/Riyadh",
+      },
+      end: {
+        dateTime: new Date(data["end_time"]).toISOString(),
+        timeZone: "Asia/Riyadh",
+      },
+      conferenceData: {
+        createRequest: {
+          requestId: `meeting-${Date.now()}-${data["id"]}`,
+          conferenceSolutionKey: { type: "hangoutsMeet" },
+        },
+      },
+      attendees: data["attendees"].map((val)=>{
+        return {"email": val};
+      }),
+      reminders: {
+        useDefault: true,
+      },
+    },
+  });
+}
+
+app.get("/login", (req, res) => {
   const url = oauth2client.generateAuthUrl({
     access_type: "offline",
     scope: scopes,
@@ -25,7 +60,7 @@ app.get("/google", (req, res) => {
   res.redirect(url);
 });
 
-app.get("/google/redirect", async (req, res) => {
+app.get("/login/redirect", async (req, res) => {
   const token = req.query.code;
   const { tokens } = await oauth2client.getToken(token);
   oauth2client.setCredentials(tokens);
@@ -34,38 +69,26 @@ app.get("/google/redirect", async (req, res) => {
 });
 
 app.get("/events", async (req, res) => {
-  const calendar = google.calendar({ version: "v3", auth: oauth2client });
 
-  await calendar.events.insert({
-    conferenceDataVersion: 1,
-    calendarId: "primary",
-    requestBody: {
-      summary: "Test Event",
-      description: "This is a test event",
-      start: {
-        dateTime: dayjs().add(1, "day").toISOString(),
-        timeZone: "Asia/Riyadh",
-      },
-      end: {
-        dateTime: dayjs().add(1, "day").add(2, "hour").toISOString(),
-        timeZone: "Asia/Riyadh",
-      },
-      conferenceData: {
-        createRequest: {
-          requestId: `meeting-${Date.now()}-${1}`,
-          conferenceSolutionKey: { type: "hangoutsMeet" },
-        },
-      },
-      attendees: [],
-      reminders: {
-        useDefault: true,
-      },
-    },
-  });
-
-  res.send("Event created");
+  try {
+    fs.readFile("./data.json", "utf-8", (err,data)=>{
+      if (err) {
+        res.send("cant read file");
+        return;
+      }
+      // Parse the JSON data
+      const dataArray = JSON.parse(data);
+      dataArray.forEach(element => {
+        insertEvent(element);
+      });
+    });
+    res.send("Event created");
+  }catch(err){
+    res.send(err);
+  }
 });
 
 app.listen(port, () => {
   console.log(`Server is running on port ${port}`);
 });
+
