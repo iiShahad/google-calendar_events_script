@@ -35,9 +35,10 @@ const insertEvent = async (data) => {
     "Asia/Riyadh"
   );
 
-  await calendar.events.insert({
+  const result = await calendar.events.insert({
     conferenceDataVersion: 1,
     calendarId: "primary",
+    sendUpdates: "all",
     requestBody: {
       summary: data["title"],
       description: data["description"],
@@ -58,11 +59,13 @@ const insertEvent = async (data) => {
       attendees: data["attendees"].map((val) => {
         return { email: val };
       }),
+
       reminders: {
         useDefault: true,
       },
     },
   });
+  return result.data;
 };
 
 // middlewares
@@ -91,8 +94,8 @@ app.get("/events", async (req, res) => {
       }
       // Parse the JSON data
       const dataArray = JSON.parse(data);
-      dataArray.forEach((element) => {
-        insertEvent(element);
+      dataArray.forEach(async (element) => {
+        const result = await insertEvent(element);
       });
     });
     res.send("Events created");
